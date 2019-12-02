@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: malli-test
+  labels:
+    app: malli-test
+spec:
+  type: NodePort
+  selector:
+    app: malli-test
+  ports:
+  - protocol: TCP
+    port: 8090
+    name: http
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: malli-test
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: malli-test
+    spec:
+      containers:
+      - name: malli-test
+        image: malli789/spring-boot-mango-docker1
+        ports:
+        - containerPort: 8010
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8010
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+# Mongo host path rc
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    name: mongo
+  name: mongo-controller
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: mongo
+    spec:
+      containers:
+      - image: mongo
+        name: mongo
+        ports:
+        - name: mongo
+          containerPort: 27017
+          hostPort: 27017
+        volumeMounts:
+        - name: mongo-persistent-storage
+          mountPath: /data/db
+      volumes:
+      - name: mongo-persistent-storage
+        hostPath:
+         path: /tmp/dbbackup
+---
+# Mongo Node Port RC
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: mongo
+  name: mongo
+spec:
+  type: ClusterIP
+  ports:
+    - port: 27017
+      targetPort: 27017
+  selector:
+    name: mongo
