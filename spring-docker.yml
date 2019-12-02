@@ -29,11 +29,11 @@ spec:
       - name: malli-test
         image: malli789/spring-boot-mango-docker1
         ports:
-        - containerPort: 8010
+        - containerPort: 8090
         livenessProbe:
           httpGet:
             path: /health
-            port: 8010
+            port: 8090
           initialDelaySeconds: 30
           timeoutSeconds: 1
 # Mongo host path rc
